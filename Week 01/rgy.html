@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      #el {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: gray;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="el"></div>
+  </body>
+
+  <script>
+    const el = document.querySelector("#el");
+
+    function setRed() {
+      el.style.background = "red";
+      setTimeout(() => {
+        setGreen();
+      }, 5000);
+    }
+
+    function setGreen() {
+      el.style.background = "green";
+      setTimeout(() => {
+        setYellow();
+      }, 10000);
+    }
+
+    function setYellow() {
+      el.style.background = "yellow";
+      setTimeout(() => {
+        setRed();
+      }, 2000);
+    }
+
+    setRed();
+  </script>
+</html>
