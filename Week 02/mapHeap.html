@@ -26,6 +26,7 @@
     <div id="container"></div>
     <br />
     <button onclick="saveMap()">save</button>
+    <button onclick="clearMap()">clear</button>
   </body>
 
   <script>
@@ -61,6 +62,95 @@
 
       get length() {
         return this.data.length;
+      }
+    }
+
+    class MinHeap {
+      /***
+       *
+       * 使用index = 0元素的数组的父子节点的下标关系
+       *
+       * k=父节点的index -> 左子节点的index = 2k + 1， 右子节点的index = （k + 1） x 2
+       *
+       * j = 子节点的index -> 父节点的index = （j -1） / 2
+       *
+       */
+      constructor(data, compare) {
+        this.data = data;
+        this.compare = compare || ((a, b) => a - b);
+      }
+
+      take() {
+        // 空集合是直接return
+        if (!this.data.length) {
+          return;
+        }
+        //  如果堆内只有一个元素则直接pop掉
+        if (this.data.length === 1) {
+          return this.data.pop();
+        }
+
+        // 获取堆顶元素
+        let min = this.data[0];
+
+        // 取出最小值后 开始下沉
+
+        // 第一步将最后一位移动到堆顶
+        this.data[0] = this.data.pop();
+        // 记录下父节点下标
+        let index = 0;
+        // 记录较小子节点下标
+        let minIndex;
+        // 首先保证有左节点
+        while ((minIndex = 2 * index + 1) < this.data.length) {
+          // 同时存在右节点
+          if (this.data[(index + 1) * 2]) {
+            //   如果左节点比右节点大，则将下标替换
+            if (this.data[(index + 1) * 2] < this.data[2 * index + 1]) {
+              minIndex = (index + 1) * 2;
+            }
+          }
+
+          // 处理等于或当前节点已经是最小的情况
+          if (this.data[index] <= this.data[minIndex]) {
+            break;
+          }
+
+          //   交换位置
+          let tmp = this.data[minIndex];
+          this.data[minIndex] = this.data[index];
+          this.data[index] = tmp;
+          //   更新坐标，继续下沉
+          index = minIndex;
+        }
+
+        return min;
+      }
+
+      insertAt(i, v) {
+        this.data[i] = v;
+        // 如果插入值比父节点小，那么开始上浮
+        let pindex = Math.floor((i - 1) / 2);
+        while (i > 0 && this.compare(v, this.data[pindex]) < 0) {
+          // 交换父节点与当前节点下标中的值
+          this.data[i] = this.data[pindex];
+          this.data[pindex] = v;
+          // 从父节点继续遍历
+          i = pindex;
+          pindex = Math.floor((i - 1) / 2);
+        }
+      }
+
+      insert(v) {
+        this.insertAt(this.data.length, v);
+      }
+
+      get length() {
+        return this.data.length;
+      }
+
+      print() {
+        console.log("heap :>> ", this.data);
       }
     }
 
@@ -130,9 +220,14 @@
       localStorage["map"] = JSON.stringify(map);
     }
 
+    // 保存地图 使用localStorage
+    function clearMap() {
+      this.map = [];
+      localStorage.clear();
+    }
+
     async function findpath(map, start, end) {
-      let queue = new Sorted([start], (a, b) => distance(a) - distance(b));
-      // let queue = [start];
+      let queue = new MinHeap([start], (a, b) => distance(a) - distance(b));
       let table = clone(map);
       markPoint(start, "yellow");
       markPoint(end, "red");
@@ -146,17 +241,16 @@
           return;
         }
 
-        // await sleep(30);
         if (!isSame(start, [x, y]) && !isSame(end, [x, y]))
           markPoint([x, y], "lightGreen");
         table[y * 100 + x] = pre;
-        queue.give([x, y]);
+        queue.insert([x, y]);
       }
 
       function distance(point) {
         return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2;
       }
-      
+
       while (queue.length) {
         let [x, y] = queue.take();
         if (isSame(end, [x, y])) {
@@ -183,7 +277,6 @@
         await insert(x - 1, y + 1, [x, y]);
         await insert(x - 1, y - 1, [x, y]);
       }
-
       return null;
     }
 
@@ -198,7 +291,7 @@
     }
 
     console.time();
-    findpath(map, [0, 0], [50, 50]).then(() => {
+    findpath(map, [0, 0], [30, 50]).then(() => {
       console.timeEnd();
     });
   </script>
