@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body></body>
+
+  <script>
+    let $ = Symbol("$");
+    class Trie {
+      constructor() {
+        this.root = Object.create(null);
+      }
+
+      insert(word) {
+        let node = this.root;
+        for (let c of word) {
+          if (!node[c]) node[c] = Object.create(null);
+          node = node[c];
+        }
+
+        if (!($ in node)) {
+          node[$] = 0;
+        }
+
+        node[$]++;
+        console.log("this.root :>> ", this.root);
+      }
+
+      most() {
+        let max = 0;
+        let maxWord = null;
+        let visit = (node, word) => {
+          if (node[$] && node[$] > max) {
+            max = node[$];
+            maxWord = word;
+          }
+
+          for (let p in node) {
+            visit(node[p], word + p);
+          }
+        };
+
+        visit(this.root, "");
+        return {
+          max,
+          maxWord,
+        };
+      }
+    }
+
+    const trie = new Trie();
+    trie.insert("abc");
+    trie.insert("abc");
+    trie.insert("bcd");
+    trie.insert("bcdf");
+    trie.insert("def");
+
+    console.log("object :>> ", trie.most());
+  </script>
+</html>

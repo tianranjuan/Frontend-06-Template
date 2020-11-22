@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .cell {
+        display: inline-block;
+        line-height: 7px;
+        width: 6px;
+        height: 6px;
+        background-color: gray;
+        border-bottom: 1px solid white;
+        border-right: 1px solid white;
+        vertical-align: top;
+      }
+
+      #container {
+        font-size: 0px;
+        width: 701px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+    <br />
+    <button onclick="saveMap()">save</button>
+    <button onclick="clearMap()">clear</button>
+  </body>
+
+  <script>
+    class MinHeap {
+      /***
+       *
+       * 使用index = 0元素的数组的父子节点的下标关系
+       *
+       * k=父节点的index -> 左子节点的index = 2k + 1， 右子节点的index = （k + 1） x 2
+       *
+       * j = 子节点的index -> 父节点的index = （j -1） / 2
+       *
+       */
+      constructor(data, compare) {
+        this.data = data;
+        this.compare = compare || ((a, b) => a - b);
+      }
+
+      take() {
+        // 空集合是直接return
+        if (!this.data.length) {
+          return;
+        }
+        //  如果堆内只有一个元素则直接pop掉
+        if (this.data.length === 1) {
+          return this.data.pop();
+        }
+
+        // 获取堆顶元素
+        let min = this.data[0];
+
+        // 取出最小值后 开始下沉
+
+        // 第一步将最后一位移动到堆顶
+        this.data[0] = this.data.pop();
+        // 记录下父节点下标
+        let index = 0;
+        // 记录较小子节点下标
+        let minIndex;
+        // 首先保证有左节点
+        while ((minIndex = 2 * index + 1) < this.data.length) {
+          // 同时存在右节点
+          if (this.data[(index + 1) * 2]) {
+            //   如果左节点比右节点大，则将下标替换
+            if (this.data[(index + 1) * 2] < this.data[2 * index + 1]) {
+              minIndex = (index + 1) * 2;
+            }
+          }
+
+          // 处理等于或当前节点已经是最小的情况
+          if (this.data[index] <= this.data[minIndex]) {
+            break;
+          }
+
+          //   交换位置
+          let tmp = this.data[minIndex];
+          this.data[minIndex] = this.data[index];
+          this.data[index] = tmp;
+          //   更新坐标，继续下沉
+          index = minIndex;
+        }
+
+        return min;
+      }
+
+      insertAt(i, v) {
+        this.data[i] = v;
+        // 如果插入值比父节点小，那么开始上浮
+        let pindex = Math.floor((i - 1) / 2);
+        while (i > 0 && this.compare(v, this.data[pindex]) < 0) {
+          // 交换父节点与当前节点下标中的值
+          this.data[i] = this.data[pindex];
+          this.data[pindex] = v;
+          // 从父节点继续遍历
+          i = pindex;
+          pindex = Math.floor((i - 1) / 2);
+        }
+      }
+
+      insert(v) {
+        this.insertAt(this.data.length, v);
+      }
+
+      has(p) {
+        return this.data.includes(p);
+      }
+
+      get length() {
+        return this.data.length;
+      }
+
+      print() {
+        console.log("heap :>> ", this.data);
+      }
+    }
+
+    function sleep(time) {
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, time);
+      });
+    }
+
+    function clone(obj) {
+      return Object.create(obj);
+    }
+
+    let map = localStorage["map"]
+      ? JSON.parse(localStorage["map"])
+      : Array(10000).fill(0);
+
+    let mouseDown = false;
+    let clear = false;
+
+    let container = document.querySelector("#container");
+    for (let col = 0; col < 100; col++) {
+      for (let row = 0; row < 100; row++) {
+        let cell = document.createElement("div");
+        cell.classList.add("cell");
+
+        if (map[col * 100 + row] === 1) {
+          cell.style.backgroundColor = "black";
+        }
+
+        cell.addEventListener("mousemove", () => {
+          if (mouseDown) {
+            if (clear) {
+              cell.style.backgroundColor = "gray";
+              map[col * 100 + row] = 0;
+            } else {
+              cell.style.backgroundColor = "black";
+              map[col * 100 + row] = 1;
+            }
+          }
+        });
+
+        container.appendChild(cell);
+        // map[col * 100 + row] = 0;
+      }
+    }
+
+    // 鼠标按下事件，设置绘制标志
+    document.addEventListener("mousedown", (e) => {
+      mouseDown = true;
+      clear = e.button === 2;
+    });
+
+    // 鼠标弹起事件，将标志还原
+    document.addEventListener("mouseup", () => {
+      mouseDown = false;
+      clear = false;
+    });
+
+    // 阻止弹出右键菜单
+    document.oncontextmenu = (e) => {
+      e.preventDefault();
+    };
+
+    // 保存地图 使用localStorage
+    function saveMap() {
+      localStorage["map"] = JSON.stringify(map);
+    }
+
+    // 保存地图 使用localStorage
+    function clearMap() {
+      this.map = [];
+      localStorage.clear();
+    }
+
+    async function findpath(map, start, end) {
+      let openset = new MinHeap([start], (a, b) => fs(a) - fs(b));
+      let closeset = [];
+      let paths = {};
+      let table = clone(map);
+
+      async function insertToOpenset(x, y) {
+        // if (x < 0 || x >= 100 || y < 0 || y >= 100) {
+        //   return;
+        // }
+
+        // if (closeset.includes([x, y]) || table[y * 100 + x]) {
+        //   return;
+        // }
+
+        for (let neighbor of neighbors([x, y])) {
+          if (
+            neighbor.x < 0 ||
+            neighbor.x >= 100 ||
+            neighbor.y < 0 ||
+            neighbor.y >= 100
+          ) {
+            continue;
+          }
+
+          if (
+            closeset.includes([neighbor.x, neighbor.y]) ||
+            map[neighbor.y * 100 + neighbor.x] === 1
+          ) {
+            continue;
+          }
+
+          if (!openset.has([neighbor.x, neighbor.y])) {
+            openset.insert(neighbor);
+          } else if (openset.has([neighbor.x, neighbor.y])) {
+            if (table[neighbor.y * 100 + neighbor.x].gs <= gs([x, y])) {
+              continue;
+            } else {
+              paths[neighbor.y * 100 + neighbor.x] = [x, y];
+              table[neighbor.y * 100 + neighbor.x].gs = gs([x, y]);
+              table[neighbor.y * 100 + neighbor.x].fs =
+                table[neighbor.y * 100 + neighbor.x].gs + hs(neighbor);
+            }
+          }
+        }
+
+        // path[y * 100 + x] = [x, y];
+
+        // table[y * 100 + x] = {
+        //   gs: gs([x, y]),
+        //   fs: fs([x, y]),
+        // };
+      }
+
+      function neighbors([x, y]) {
+        return [
+          [x + 1, y],
+          [x - 1, y],
+          [x, y + 1],
+          [x, y - 1],
+          [x + 1, y + 1],
+          [x + 1, y - 1],
+          [x - 1, y + 1],
+          [x - 1, y - 1],
+        ];
+      }
+
+      while (openset.length) {
+        let [x, y] = openset.take();
+        closeset.push([x, y]);
+
+        if (isSame(end, [x, y])) {
+          let p = [];
+          console.log("openSet :>> ", openset.print());
+          console.log("closeset :>> ", closeset);
+          console.log("path :>> ", paths);
+          // while (x !== start[0] || y !== start[1]) {
+          //   [x, y] = path[y * 100 + x]; // 通过解构进行了复用x，y变量，优雅的实现了替换当前节点为前置节点
+          //   p.push(map[y * 100 + x]);
+          //   markPoint([x, y], "blue");
+          // }
+
+          return p;
+        }
+
+        for (let neighbor of neighbors([x, y])) {
+          if (
+            neighbor.x < 0 ||
+            neighbor.x >= 100 ||
+            neighbor.y < 0 ||
+            neighbor.y >= 100
+          ) {
+            continue;
+          }
+
+          if (
+            closeset.includes([neighbor.x, neighbor.y]) ||
+            map[neighbor.y * 100 + neighbor.x] === 1
+          ) {
+            continue;
+          }
+
+          let curr_gs = gs([x, y]) + hs(neighbor);
+
+          if (!openset.has([neighbor.x, neighbor.y])) {
+            openset.insert(neighbor);
+          } else if (table[neighbor.y * 100 + neighbor.x][0] <= curr_gs) {
+            continue;
+          }
+          paths[neighbor.y * 100 + neighbor.x] = [x, y];
+
+          table[neighbor.y * 100 + neighbor.x] = [
+            curr_gs,
+            curr_gs + hs(neighbor),
+          ];
+        }
+        // // 正向
+        // await insertToOpenset(x + 1, y, [x, y]);
+        // await insertToOpenset(x - 1, y, [x, y]);
+        // await insertToOpenset(x, y + 1, [x, y]);
+        // await insertToOpenset(x, y - 1, [x, y]);
+
+        // // 斜角
+        // await insertToOpenset(x + 1, y + 1, [x, y]);
+        // await insertToOpenset(x + 1, y - 1, [x, y]);
+        // await insertToOpenset(x - 1, y + 1, [x, y]);
+        // await insertToOpenset(x - 1, y - 1, [x, y]);
+      }
+
+      function gs(point) {
+        return Math.abs(point[0] - start[0]) + Math.abs(point[1] - start[1]);
+      }
+
+      function fs(point) {
+        return gs(point) + hs(point);
+      }
+
+      function hs(point) {
+        return Math.sqrt((point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2);
+      }
+
+      return null;
+    }
+
+    function isSame(point1, point2) {
+      return point1[0] === point2[0] && point1[1] === point2[1];
+    }
+
+    function markPoint(point, color) {
+      container.children[
+        point[1] * 100 + point[0]
+      ].style.backgroundColor = color;
+    }
+
+    console.time();
+    findpath(map, [0, 0], [30, 50]).then(() => {
+      console.timeEnd();
+    });
+  </script>
+</html>
