@@ -10,10 +10,12 @@ function KMP(source, pattern) {
         table[i] = j;
       } else {
         // 判断的意义是避免j回到第0位
-        if (j > 0) j = table[j];
-        ++i;
+        if (j > 0)  j = table[j];
+        else ++i;
       }
     }
+
+    console.log('table :>> ', table);
   }
 
   {
@@ -39,4 +41,4 @@ function KMP(source, pattern) {
   }
 }
 
-console.log("object :>> ", KMP("hello", "ll"));
+console.log("object :>> ", KMP("hello", "hello"));
