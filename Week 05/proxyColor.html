@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <input id="r" type="range" min="0" max="255" />
+    <input id="g" type="range" min="0" max="255" />
+    <input id="b" type="range" min="0" max="255" />
+    <div id="color" style="width: 100px; height: 100px"></div>
+  </body>
+
+  <script>
+    let callbacks = new Map();
+    let reactivities = new Map();
+    let usedReactivities = [];
+
+    /********************************/
+
+    const object = {
+      r: 1,
+      g: 2,
+      b: 3,
+    };
+
+    const po = reactive(object);
+
+    effect(() => {
+      document.querySelector("#r").value = po.r;
+      document.querySelector("#g").value = po.g;
+      document.querySelector("#b").value = po.b;
+      document.querySelector(
+        "#color"
+      ).style.backgroundColor = `rgb(${po.r},${po.g},${po.b})`;
+    });
+
+    document.querySelector("#r").addEventListener("input", (event) => {
+      po.r = event.target.value;
+    });
+    document.querySelector("#g").addEventListener("input", (event) => {
+      po.g = event.target.value;
+    });
+    document.querySelector("#b").addEventListener("input", (event) => {
+      po.b = event.target.value;
+    });
+
+    /********************************/
+
+    function effect(callback) {
+      usedReactivities = [];
+      callback();
+      for (let reactivity of usedReactivities) {
+        const [key, prop] = reactivity;
+        if (!callbacks.has(key)) {
+          callbacks.set(key, new Map());
+        }
+
+        if (!callbacks.get(key).has(prop)) {
+          callbacks.get(key).set(prop, []);
+        }
+        callbacks.get(key).get(prop).push(callback);
+      }
+    }
+
+    function reactive(source) {
+      if (reactivities.has(source)) {
+        return reactivities.get(source);
+      }
+
+      let proxy = new Proxy(source, {
+        set(target, property, value) {
+          if (target[property] === value) return target[property];
+
+          target[property] = value;
+          if (callbacks.get(target)) {
+            if (callbacks.get(target).get(property)) {
+              for (let callback of callbacks.get(target).get(property)) {
+                callback();
+              }
+            }
+          }
+          return target[property];
+        },
+        get(target, property) {
+          usedReactivities.push([target, property]);
+          if (typeof target[property] === "object") {
+            return reactive(target[property]);
+          }
+
+          return target[property];
+        },
+      });
+
+      reactivities.set(source, proxy);
+
+      return proxy;
+    }
+  </script>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body></body>
+  <script>
+    let callbacks = new Map();
+    let reactivities = new Map();
+    let usedReactivities = [];
+
+    let obj = {
+      a: { b: "a.b" },
+      b: "world",
+    };
+
+    let objProxy = reactive(obj);
+
+    effect(() => {
+      objProxy.a.b;
+      console.log("in effect objProxy.a :>> ", usedReactivities);
+    });
+
+    function effect(callback) {
+      usedReactivities = []; // 先清空保证干净
+      callback(); // 调用一遍回调函数，使reactive的get触发
+      for (let reactivity of usedReactivities) {
+        const [key, prop] = reactivity;
+        if (!callbacks.has(key)) {
+          callbacks.set(key, new Map()); // 设置当前reactive对象的回调索引
+        }
+
+        if (!callbacks.get(key).has(prop)) {
+          callbacks.get(key).set(prop, []); // 支持多个effect同时监听同一属性
+        }
+        callbacks.get(key).get(prop).push(callback);
+      }
+    }
+
+    function reactive(source) {
+      if (reactivities.has(source)) {
+        return reactivities.get(source);
+      }
+
+      let proxy = new Proxy(source, {
+        set(target, property, value) {
+          if (target[property] === value) return target[property];
+
+          target[property] = value;
+          if (callbacks.get(target)) {
+            if (callbacks.get(target).get(property)) {
+              for (let callback of callbacks.get(target).get(property)) {
+                callback();
+              }
+            }
+          }
+          return target[property];
+        },
+        get(target, property) {
+          usedReactivities.push([target, property]);
+          if (typeof target[property] === "object") {
+            return reactive(target[property]);
+          }
+
+          return target[property];
+        },
+      });
+
+      reactivities.set(source, proxy);
+
+      return proxy;
+    }
+  </script>
+</html>

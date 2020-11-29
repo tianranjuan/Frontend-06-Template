@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="container">
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+      文字 文字 文字 文字 文字 文字
+    </div>
+
+    <div>12312312sdjaslkdj asjdlk j</div>
+    <div
+      id="dragable"
+      style="
+        display: inline-block;
+        width: 100px;
+        height: 100px;
+        background: pink;
+      "
+    ></div>
+  </body>
+  <script>
+    document.addEventListener("mouseup", () => {
+      console.log("document.getSelection() :>> ", document.getSelection());
+    });
+
+    let dragable = document.querySelector("#dragable");
+    let baseX = 0;
+    let baseY = 0;
+
+
+    dragable.addEventListener("mousedown", (event) => {
+      let startX = event.clientX;
+      let startY = event.clientY;
+
+      let up = (event) => {
+        baseX = baseX + event.clientX - startX;
+        baseY = baseY + event.clientY - startY;
+        document.removeEventListener("mousemove", move);
+        document.removeEventListener("mouseup", up);
+      };
+      let move = (event) => {
+        let range = getNearest(event.clientX, event.clientY);
+        range.insertNode(dragable);
+        // dragable.style.transform = `translate(${
+        //   baseX + event.clientX - startX
+        // }px, ${baseY + event.clientY - startY}px)`;
+      };
+
+      document.addEventListener("mousemove", move);
+      document.addEventListener("mouseup", up);
+    });
+
+    let container = document.querySelector("#container");
+    let ranges = [];
+    for (let i = 0; i < container.childNodes[0].textContent.length; i++) {
+      let range = document.createRange();
+      //   设定range的选区为 container.childNodes[0] 中的第i个字符
+      range.setStart(container.childNodes[0], i);
+      range.setEnd(container.childNodes[0], i);
+      ranges.push(range);
+    }
+
+    function getNearest(x, y) {
+      let min = Infinity;
+      let nearest = null;
+      for (let range of ranges) {
+        let ract = range.getBoundingClientRect();
+        let distance = (ract.x - x) ** 2 + (ract.y - y) ** 2;
+        if (distance < min) {
+          min = distance;
+          nearest = range;
+        }
+      }
+
+      return nearest;
+    }
+
+    document.addEventListener("selectstart", (e) => e.preventDefault());
+  </script>
+</html>
