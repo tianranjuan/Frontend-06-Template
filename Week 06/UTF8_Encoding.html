@@ -1,0 +1,24 @@
+<script>
+  function UTF8_Encoding(str) {
+    let buffer = [];
+    for (let i = 0; i < str.length; i++) {
+      let charCode = str.charCodeAt(i);
+      if (charCode < 0x80) {
+        //   处理一个字节长度
+        buffer.push("0" + charCode.toString(2));
+      } else if (charCode < 0x800) {
+        //   处理两个字节长度
+        buffer.push(0xc0 | (charCode >> 6)); // charcode向右移6位取出最前的2位与0xc0做或运算，0xc0是unicode的二进制编码格式第一个字符模板
+        buffer.push(0x80 | (charCode & 0x3f)); // charcode与0x3f做与运算，0x3f是unicode的二进制编码格式第二个字符模板中待填充位的反码，再与0x80做或运算，与上面意义相同
+      } else if (charCode < 0x8000) {
+        // 处理三个字节长度
+        buffer.push(0xe0 | (charCode >> 12));
+        buffer.push(0x80 | ((charCode >> 6) & 0x3f));
+        buffer.push(0x80 | (charCode & 0x3f));
+      }
+    }
+    return buffer;
+  }
+
+  console.log("UTF8_Encoding :>> ", UTF8_Encoding("一"));
+</script>
