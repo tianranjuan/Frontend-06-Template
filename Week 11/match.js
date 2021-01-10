@@ -68,7 +68,6 @@ function match(selector, element) {
   if (!selector || !element) {
     return false;
   }
-  console.log(element.classList);
   let state = start;
   for (let char of selector) {
     state = state(char);
@@ -76,7 +75,6 @@ function match(selector, element) {
 
   state(EOF);
 
-  console.log("selectorList :>> ", selectorList.slice());
   while (selectorList.length) {
     let select = selectorList.pop();
     if (select.type === "compSelector") {
@@ -84,9 +82,11 @@ function match(selector, element) {
       if (select.selector.charAt(0) === "#") {
         if (arr.shift() != "#" + element.id) return false;
       }
-      console.log('arr :>> ', arr);
       for (let a of arr) {
-        if (!Array.prototype.slice.call(element.classList).includes(a) && a !== "") {
+        if (
+          !Array.prototype.slice.call(element.classList).includes(a) &&
+          a !== ""
+        ) {
           return false;
         }
       }
@@ -101,6 +101,18 @@ function match(selector, element) {
 }
 
 console.log(
-  "match :>> ",
+  "match div #id.class.test :>> ",
   match("div #id.class.test", document.getElementById("id"))
 );
+console.log(
+  "match div .class.test:>> ",
+  match("div .class.test", document.getElementById("id"))
+);
+console.log(
+  "match div #id.test:>> ",
+  match("div #id.test", document.getElementById("id"))
+);
+
+console.log("match div :>> ", match("div ", document.getElementById("id")));
+
+console.log("match span :>> ", match("span #id.class", document.getElementById("id")));
