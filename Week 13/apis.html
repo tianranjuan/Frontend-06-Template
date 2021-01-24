@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body></body>
+  <script>
+    let names = Object.getOwnPropertyNames(window);
+
+    function filterOut(names, props) {
+      let set = new Set();
+      props.forEach((o) => set.add(o));
+      return names.filter((e) => !set.has(e));
+    }
+    console.log("names :>> ", names);
+
+    // https://encoding.spec.whatwg.org/#interface-textdecoder
+    names = filterOut(names, [
+      "TextDecoder",
+      "TextEncoder",
+      "TextDecoderStream",
+      "TextEncoderStream",
+    ]);
+
+    // dom
+    names = filterOut(names, [
+      "Node",
+      "Event",
+      "CustomEvent",
+      "EventTarget",
+      "AbortController",
+      "AbortSignal",
+      "NodeList",
+      "HTMLCollection",
+      "MutationObserver",
+      "MutationRecord",
+      "Document",
+      "DOMImplementation",
+      "DocumentType",
+      "DocumentFragment",
+      "ShadowRoot",
+      "Element",
+      "NamedNodeMap",
+      "Attr",
+      "CharacterData",
+      "Text",
+      "CDATASection",
+      "Comment",
+      "AbstractRange",
+      "StaticRange",
+      "Range",
+      "NodeIterator",
+      "TreeWalker",
+      "NodeFilter",
+      "DOMTokenList",
+      "XPathResult",
+      "XPathExpression",
+      "XPathEvaluator",
+    ]);
+
+    // console
+    names = filterOut(names, ["console"]);
+
+    // stream
+    names = filterOut(names, [
+      "ReadableStream",
+      "ReadableStreamDefaultReader",
+      "WritableStream",
+      "WritableStreamDefaultWriter",
+      "TransformStream",
+      "ByteLengthQueuingStrategy",
+      "CountQueuingStrategy",
+    ]);
+
+    // XMLHttpRequest
+    names = filterOut(names, ["XMLHttpRequest", "FormData", "ProgressEvent"]);
+
+    // url
+    names = filterOut(names, ["URL", "URLSearchParams"]);
+
+    // html
+    names = filterOut(names, [
+      "HTMLAllCollection",
+      "HTMLFormControlsCollection",
+      "HTMLOptionsCollection",
+      "DOMStringList",
+      "TrackEvent",
+      "SubmitEvent",
+      "FormDataEvent",
+      "ImageBitmapRenderingContext",
+      "OffscreenCanvas",
+      "CustomElementRegistry",
+      "ElementInternals",
+      "DataTransfer",
+      "DataTransferItemList",
+      "DataTransferItem",
+      "DragEvent",
+      "History",
+      "Location",
+      "PopStateEvent",
+      "HashChangeEvent",
+      "PageTransitionEvent",
+      "BeforeUnloadEvent",
+      "MessageEvent",
+      "EventSource",
+      "WebSocket",
+      "CloseEvent",
+      "Storage",
+      "StorageEvent",
+    ]);
+
+    console.log("names :>> ", names);
+  </script>
+</html>
