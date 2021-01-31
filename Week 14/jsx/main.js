@@ -42,6 +42,7 @@ class Carousel extends Component {
 
         let x = e.clientX - startX;
         position = position - Math.round(x / 500);
+        console.log('position :>> ', position);
         for (let offset of [0, -Math.sign(Math.round(x / 500) - x + 250 * Math.sign(x))]) {
           let pos = position + offset;
           pos = (pos + children.length) % children.length;
