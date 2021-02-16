@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body></body>
+  <script src="./gesture.js"></script>
+  <script>
+    enableGesture(document.documentElement);
+    document.documentElement.addEventListener("tap", (e) => {
+      console.log("tap :>> ", e);
+    });
+    document.documentElement.addEventListener("press", (e) => {
+      console.log("press :>> ", e);
+    });
+    document.documentElement.addEventListener("pressend", (e) => {
+      console.log("pressend :>> ", e);
+    });
+    document.documentElement.addEventListener("panstart", (e) => {
+      console.log("panstart :>> ", e);
+    });
+    document.documentElement.addEventListener("panend", (e) => {
+      console.log("panend :>> ", e);
+    });
+    document.documentElement.addEventListener("pan", (e) => {
+      console.log("pan :>> ", e);
+    });
+    document.documentElement.addEventListener("flick", (e) => {
+      console.log("flick :>> ", e);
+    });
+  </script>
+</html>
