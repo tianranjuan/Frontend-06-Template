@@ -1,5 +1,3 @@
-let element = document.documentElement;
-
 class Listener {
   constructor(element, recognizer) {
     const contexts = new Map();
